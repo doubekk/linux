@@ -86,6 +86,24 @@ hostcxx_flags  = -Wp,-MMD,$(depfile) $(_hostcxx_flags)
 #####
 # Compile programs on the host
 
+
+argc = len(sys.argv)
+    if not (argc==1 or argc == 3):
+        print("Error: incorrect number of arguments or unrecognized option")
+        usage()
+
+    if argc == 1:
+        # if no filenames given, assume .config and .config.old
+        build_dir=""
+        if "KBUILD_OUTPUT" in os.environ:
+            build_dir = os.environ["KBUILD_OUTPUT"]+"/"
+        configa_filename = build_dir + ".config.old"
+        configb_filename = build_dir + ".config"
+    else:
+        configa_filename = sys.argv[1]
+        configb_filename = sys.argv[2]
+	
+	
 # Create executable from a single .c file
 # host-csingle -> Executable
 quiet_cmd_host-csingle 	= HOSTCC  $@
