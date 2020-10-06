@@ -40,6 +40,66 @@ static bool __pure __init test(char const *pat, char const *str, bool expected)
 	return success;
 }
 
+atomic64_set(&v, v1);
+	r = v1;
+	BUG_ON(v.counter != r);
+	BUG_ON(atomic64_read(&v) != r);
+
+	TEST(64, add, +=, onestwos);
+	TEST(64, add, +=, -one);
+	TEST(64, sub, -=, onestwos);
+	TEST(64, sub, -=, -one);
+	TEST(64, or, |=, v1);
+	TEST(64, and, &=, v1);
+	TEST(64, xor, ^=, v1);
+	TEST(64, andnot, &= ~, v1);
+
+	RETURN_FAMILY_TEST(64, add_return, +=, onestwos);
+	RETURN_FAMILY_TEST(64, add_return, +=, -one);
+	RETURN_FAMILY_TEST(64, sub_return, -=, onestwos);
+	RETURN_FAMILY_TEST(64, sub_return, -=, -one);
+
+	FETCH_FAMILY_TEST(64, fetch_add, +=, onestwos);
+	FETCH_FAMILY_TEST(64, fetch_add, +=, -one);
+	FETCH_FAMILY_TEST(64, fetch_sub, -=, onestwos);
+	FETCH_FAMILY_TEST(64, fetch_sub, -=, -one);
+
+	FETCH_FAMILY_TEST(64, fetch_or,  |=, v1);
+	FETCH_FAMILY_TEST(64, fetch_and, &=, v1);
+	FETCH_FAMILY_TEST(64, fetch_andnot, &= ~, v1);
+	FETCH_FAMILY_TEST(64, fetch_xor, ^=, v1);
+
+	INIT(v0);
+	atomic64_inc(&v);
+	r += one;
+	BUG_ON(v.counter != r);
+
+	INIT(v0);
+	atomic64_dec(&v);
+	r -= one;
+	BUG_ON(v.counter != r);
+
+	INC_RETURN_FAMILY_TEST(64, v0);
+	DEC_RETURN_FAMILY_TEST(64, v0);
+
+	XCHG_FAMILY_TEST(64, v0, v1);
+	CMPXCHG_FAMILY_TEST(64, v0, v1, v2);
+
+	INIT(v0);
+	BUG_ON(atomic64_add_unless(&v, one, v0));
+	BUG_ON(v.counter != r);
+
+	INIT(v0);
+	BUG_ON(!atomic64_add_unless(&v, one, v1));
+	r += one;
+	BUG_ON(v.counter != r);
+
+	INIT(onestwos);
+	BUG_ON(atomic64_dec_if_positive(&v) != (onestwos - 1));
+	r -= one;
+	BUG_ON(v.counter != r);
+
+
 /*
  * The tests are all jammed together in one array to make it simpler
  * to place that array in the .init.rodata section.  The obvious
