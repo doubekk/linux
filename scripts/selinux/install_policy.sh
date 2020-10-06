@@ -36,6 +36,15 @@ if selinuxenabled; then
     exit 1
 fi
 
+ifneq ($(CSKYABI),)
+MCPU_STR = $(CPUTYPE)$(FPUEXT)$(VDSPEXT)$(TEEEXT)
+KBUILD_CFLAGS += -mcpu=$(CPUTYPE) -Wa,-mcpu=$(MCPU_STR)
+KBUILD_CFLAGS += -DCSKYCPU_DEF_NAME=\"$(MCPU_STR)\"
+KBUILD_CFLAGS += -msoft-float -mdiv
+KBUILD_CFLAGS += -fno-tree-vectorize
+endif
+
+
 cd mdp
 ./mdp -m policy.conf file_contexts
 $CP -U allow -M -o policy.$VERS policy.conf
