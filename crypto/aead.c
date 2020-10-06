@@ -211,6 +211,50 @@ int crypto_grab_aead(struct crypto_aead_spawn *spawn,
 }
 EXPORT_SYMBOL_GPL(crypto_grab_aead);
 
+	spawns = &top;
+	do {
+		while (!list_empty(spawns)) {
+			struct crypto_instance *inst;
+
+			spawn = list_first_entry(spawns, struct crypto_spawn,
+						 list);
+			inst = spawn->inst;
+
+			list_move(&spawn->list, &stack);
+			spawn->dead = !spawn->registered || &inst->alg != nalg;
+
+			if (!spawn->registered)
+				break;
+
+			BUG_ON(&inst->alg == alg);
+
+			if (&inst->alg == nalg)
+				break;
+
+			spawns = &inst->alg.cra_users;
+
+			/*
+			 * Even if spawn->registered is true, the
+			 * instance itself may still be unregistered.
+			 * This is because it may have failed during
+			 * registration.  Therefore we still need to
+			 * make the following test.
+			 *
+			 * We may encounter an unregistered instance here, since
+			 * an instance's spawns are set up prior to the instance
+			 * being registered.  An unregistered instance will have
+			 * NULL ->cra_users.next, since ->cra_users isn't
+			 * properly initialized until registration.  But an
+			 * unregistered instance cannot have any users, so treat
+			 * it the same as ->cra_users being empty.
+			 */
+			if (spawns->next == NULL)
+				break;
+		}
+	} while ((spawns = crypto_more_spawns(alg, &stack, &top,
+					      &secondary_spawns)));
+
+	/*
 struct crypto_aead *crypto_alloc_aead(const char *alg_name, u32 type, u32 mask)
 {
 	return crypto_alloc_tfm(alg_name, &crypto_aead_type, type, mask);
